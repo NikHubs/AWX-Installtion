@@ -1,5 +1,5 @@
 
-# Installationsanleitung für K3s und AWX Operator
+# Installationsanleitung für K3s und AWX
 
 ## Vorbereitungen
 
@@ -49,8 +49,6 @@ Mit diesen Schritten haben Sie K3s erfolgreich installiert, und es sollte nun la
 Der **AWX Operator** wird ab AWX-Version **<18.0.0** für die Installation benötigt.
 
 ### Schritte zur Installation
-Führen Sie die folgenden Befehle aus, um den AWX Operator zu installieren:
-
 1. Klonen Sie das AWX Operator Repository:
    ```bash
    git clone https://github.com/ansible/awx-operator.git
@@ -88,8 +86,125 @@ kubectl get pods -n awx
 
 ---
 
+## Installieren von AWX
+
+### 1. Persistent Volume Claim erstellen
+Erstellen Sie die Datei `public-static-pvc.yaml`:
+
+```bash
+vim public-static-pvc.yaml
+```
+
+Fügen Sie den folgenden Inhalt ein:
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: public-static-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+```
+
+Speichern Sie die Datei mit `ESC` und `:wq`.
+
+### 2. AWX Deployment erstellen
+Erstellen Sie die Datei `awx-instance-deployment.yml`:
+
+```bash
+vim awx-instance-deployment.yml
+```
+
+Fügen Sie den folgenden Inhalt ein:
+```yaml
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+spec:
+  service_type: nodeport
+  projects_persistence: true
+  projects_storage_access_mode: ReadWriteOnce
+  web_extra_volume_mounts: |
+    - name: static-data
+      mountPath: /var/lib/projects
+  extra_volumes: |
+    - name: static-data
+      persistentVolumeClaim:
+        claimName: public-static-data-pvc
+```
+
+Speichern Sie die Datei mit `ESC` und `:wq`.
+
+### 3. Konfiguration anwenden
+Wenden Sie die Konfigurationen an und überprüfen Sie den Status:
+
+```bash
+kubectl apply -f public-static-pvc.yaml -n awx
+kubectl apply -f awx-instance-deployment.yml -n awx
+kubectl get pods -n awx
+```
+
+### 4. Status live verfolgen
+Verfolgen Sie den Fortschritt mit folgendem Befehl (mit `STRG+C` verlassen):
+
+```bash
+kubectl get pods -l "app.kubernetes.io/managed-by=awx-operator" -n awx -w
+```
+
+---
+
+## Zugriff auf AWX
+
+### 1. Service überprüfen
+Finden Sie die IPs und Ports mit folgendem Befehl:
+
+```bash
+kubectl get svc -n awx
+```
+
+Beispielausgabe:
+```plaintext
+[root@awx-server]# kubectl get svc -n awx
+NAME                                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+awx-operator-controller-manager-metrics-service   ClusterIP   10.43.219.250   <none>        8443/TCP                195d
+awx-postgres-13                                   ClusterIP   None            <none>        5432/TCP                195d
+awx-service                                       NodePort    10.43.154.175   <none>        80:30080/TCP            195d
+```
+
+- **Port 30080** ist für die Web-Oberfläche vorgesehen (Port 80 ist für K3s reserviert).
+
+### 2. Port ändern (optional)
+Falls Sie den Port ändern möchten, verwenden Sie folgenden Befehl:
+
+```bash
+kubectl patch svc awx-service -n awx --type='json' -p='[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30080}]'
+```
+
+### 3. Passwort für Anmeldung finden
+Finden Sie das Standard-Passwort mit folgendem Befehl:
+
+```bash
+kubectl -n awx get secret awx-admin-password -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+```
+
+### 4. Anmeldung
+- Öffnen Sie die AWX-Web-Oberfläche unter: `http://<SERVER-IP>:<PORT>`.
+- Der Standard-Benutzername ist `admin`.
+- Das Passwort finden Sie im letzten Schritt.
+
+---
+
 ## Zusammenfassung
-- **K3s** wurde erfolgreich installiert und läuft.
-- Der **AWX Operator** wurde bereitgestellt und kann verwendet werden.
+Mit dieser Anleitung haben Sie:
+- **K3s installiert und konfiguriert.**
+- **Den AWX Operator bereitgestellt.**
+- **AWX erfolgreich installiert und Zugriff erhalten.**
 
 Falls Sie weitere Unterstützung benötigen, werfen Sie einen Blick in die [K3s-Dokumentation](https://k3s.io) oder die [AWX Operator GitHub-Seite](https://github.com/ansible/awx-operator).
