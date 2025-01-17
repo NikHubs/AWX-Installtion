@@ -1,5 +1,5 @@
 
-# Installationsanleitung für K3s und AWX
+# Installationsanleitung für AWX mit K3s
 
 ## Vorbereitungen
 
