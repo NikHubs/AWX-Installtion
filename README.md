@@ -1,6 +1,8 @@
 
 # Installationsanleitung für AWX mit K3s
 
+> **_Note:_** Need this guide in English? [Click here](README-en.md)
+
 ## Vorbereitungen
 
 ### 1. Linux-System aktualisieren
