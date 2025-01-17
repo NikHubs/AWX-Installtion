@@ -175,7 +175,7 @@ Beispielausgabe:
 NAME                                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
 awx-operator-controller-manager-metrics-service   ClusterIP   10.43.219.250   <none>        8443/TCP                195d
 awx-postgres-13                                   ClusterIP   None            <none>        5432/TCP                195d
-awx-service                                       NodePort    10.43.154.175   <none>        <span style="color:green">80:30080/TCP</span>            195d 
+awx-service                                       NodePort    10.43.154.175   <none>        80:30080/TCP            195d 
 ```
 
 - **Port 30080** ist für die Web-Oberfläche vorgesehen (Port 80 ist für K3s reserviert).
