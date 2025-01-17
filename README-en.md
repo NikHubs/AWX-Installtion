@@ -1,7 +1,7 @@
 
 # Installation Guide for AWX with K3s
 
-> **_Note:_** Need this guide in German? [Click here](README-de.md)
+> **_Note:_** Need this guide in German? [Click here](README.md)
 
 ## Preparations
 
