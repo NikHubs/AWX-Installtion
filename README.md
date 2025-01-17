@@ -208,3 +208,6 @@ Mit dieser Anleitung haben Sie:
 - **AWX erfolgreich installiert und Zugriff erhalten.**
 
 Falls Sie weitere Unterstützung benötigen, werfen Sie einen Blick in die [K3s-Dokumentation](https://k3s.io) oder die [AWX Operator GitHub-Seite](https://github.com/ansible/awx-operator).
+
+### Quellen
+Teile dieser Anleitung basieren auf der Anleitung von [RPI4Cluster](https://rpi4cluster.com/awx-install/).
